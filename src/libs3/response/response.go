@@ -1,6 +1,7 @@
 package response
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -43,8 +44,14 @@ var JComplete = func(w http.ResponseWriter, status_code int, code int, message s
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status_code)
 
-	var b, _ = json.Marshal(res)
-	fmt.Fprint(w, string(b))
+	var buffer = bytes.NewBufferString("")
+	var enc = json.NewEncoder(buffer)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "    ")
+	var _ = /*error ignore*/ enc.Encode(res)
+
+	//var b, _ = json.Marshal(res)
+	fmt.Fprint(w, buffer.String())
 	return
 }
 

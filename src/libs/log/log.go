@@ -11,14 +11,27 @@ import (
 )
 
 var logger *Logger = nil
+var path = ""
 
 func init() {
+	var ott uint = ott_terminal
 	var writers = []io.Writer{
 		os.Stdout,
 	}
+
+	if path != "" {
+		var file, err = os.OpenFile("app.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
+		if err == nil {
+			ott = ott_file
+			writers = []io.Writer{
+				file,
+			}
+		}
+	}
+
 	logger = &Logger{
 		out:      io.MultiWriter(writers...),
-		out_type: terminal,
+		out_type: ott,
 	}
 }
 
@@ -38,8 +51,8 @@ const (
 
 const (
 	/*out type*/
-	terminal = 0
-	file     = 1
+	ott_terminal = 0
+	ott_file     = 1
 )
 
 type Logger struct {
@@ -51,7 +64,7 @@ type Logger struct {
 func New(out io.Writer) *Logger {
 	var l = &Logger{
 		out:      out,
-		out_type: file,
+		out_type: ott_file,
 	}
 	return l
 }
@@ -110,32 +123,32 @@ func color_format(color int) string {
 func Debug(v interface{}) {
 	if logger != nil {
 		var pretty = "%s"
-		if logger.out_type == terminal {
+		if logger.out_type == ott_terminal {
 			pretty = color_format(color_text_yellow)
 		}
 
-		logger.Output(pretty, "[DEBUG]▸ ", 3, fmt.Sprintln(v))
+		var _ = logger.Output(pretty, "[DEBUG]▸ ", 3, fmt.Sprintln(v))
 	}
 }
 
 func Info(v interface{}) {
 	if logger != nil {
 		var pretty = "%s"
-		if logger.out_type == terminal {
+		if logger.out_type == ott_terminal {
 			pretty = color_format(color_text_white)
 		}
 
-		logger.Output(pretty, "[INFO]▸ ", 3, fmt.Sprintln(v))
+		var _ = logger.Output(pretty, "[INFO]▸ ", 3, fmt.Sprintln(v))
 	}
 }
 
 func Error(v interface{}) {
 	if logger != nil {
 		var pretty = "%s"
-		if logger.out_type == terminal {
+		if logger.out_type == ott_terminal {
 			pretty = color_format(color_text_red)
 		}
 
-		logger.Output(pretty, "[ERROR]▸ ", 3, fmt.Sprintln(v))
+		var _ = logger.Output(pretty, "[ERROR]▸ ", 3, fmt.Sprintln(v))
 	}
 }

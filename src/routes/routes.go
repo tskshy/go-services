@@ -1,11 +1,10 @@
 package routes
 
 import (
-	"net/http"
-
 	"github.com/gorilla/mux"
-
-	"api/response"
+	"libs/log"
+	"libs3/response"
+	"net/http"
 )
 
 func Init() *mux.Router {
@@ -16,10 +15,12 @@ func Init() *mux.Router {
 
 func routes(router *mux.Router) {
 	router.HandleFunc("/", response.DecoratorFunc(home)).Methods("GET")
-	router.HandleFunc("/", response.DecoratorFunc(home)).Methods("POST")
 }
 
 var home = func(w http.ResponseWriter, r *http.Request) {
-	response.JOK(w)
+	log.Debug("test")
+	var m = make(map[string]string)
+	m["html"] = `"aa"<a>hello</a>`
+	response.JResult(w, m)
 	return
 }

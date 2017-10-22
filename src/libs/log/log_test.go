@@ -1,44 +1,23 @@
 package log
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
 
-type I interface {
-	Say()
-}
+func Test_Output(t *testing.T) {
+	Debug("123", "sss")
+	Info("123", "sss")
+	Warn("123", "sss")
+	//Error("123", "sss")
 
-type Person struct {
-	Name string
-}
-
-func (p *Person) Say() {
-	fmt.Println(p.Name)
-}
-
-func (p *Person) Writer(pp []byte) (int, error) {
-	fmt.Println(p.Name)
-	return len(pp), nil
-}
-
-func Test_Log(t *testing.T) {
-	var p = &Person{
-		Name: "abc",
+	var logger = &Logger{
+		files: []*os.File{
+			os.Stdout,
+		},
+		level:     _level_debug,
+		calldepth: 4,
 	}
 
-	var is I = p
-	is.Say()
-
-	var s = os.Stdout
-	fmt.Println(s.Fd(), s.Name())
-	//s = os.Stderr
-	//fmt.Println(s.Fd(), s.Name())
-	//s = os.Stdin
-	//fmt.Println(s.Fd(), s.Name())
-	s, _ = os.OpenFile("app.log1", os.O_CREATE|os.O_RDWR, 0666)
-	fmt.Println(s.Fd(), s.Name())
-	s, _ = os.OpenFile("app.log", os.O_CREATE|os.O_RDWR, 0666)
-	fmt.Println(s.Fd(), s.Name())
+	logger.Debug(12311)
 }

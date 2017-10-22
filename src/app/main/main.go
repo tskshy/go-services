@@ -1,6 +1,6 @@
 package main
 
-import "sys"
+import "app/sys"
 
 func main() {
 	sys.Boot()

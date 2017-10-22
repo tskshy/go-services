@@ -20,7 +20,7 @@ params:
 return:
 	string
 */
-func InterfaceToJsonStr(v interface{}) string {
+func JsonInfToStr(v interface{}) string {
 	var buffer = bytes.NewBufferString("")
 
 	var enc = json.NewEncoder(buffer)
@@ -40,7 +40,7 @@ params:
 return:
 	error
 */
-func JsonStrToInterface(js string, v interface{}) error {
+func JsonStrToInf(js string, v interface{}) error {
 	var dec = json.NewDecoder(bytes.NewBufferString(js))
 	var err = dec.Decode(v)
 

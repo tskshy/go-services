@@ -11,7 +11,7 @@ type JnRes struct {
 	StatusCode string      `json:"status-code"`
 	Message    string      `json:"message"`
 	Error      string      `json:"error"`
-	Body       interface{} `json:"body"`
+	Body       interface{} `json:"body,omitempty"`
 }
 
 var default_code = 0

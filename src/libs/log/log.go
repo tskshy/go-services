@@ -1,154 +1,163 @@
 package log
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"runtime"
 	"sync"
 	"time"
 )
 
-var logger *Logger = nil
-var path = ""
-
-func init() {
-	var ott uint = ott_terminal
-	var writers = []io.Writer{
-		os.Stdout,
-	}
-
-	if path != "" {
-		var file, err = os.OpenFile("app.log", os.O_CREATE|os.O_RDWR|os.O_APPEND, 0666)
-		if err == nil {
-			ott = ott_file
-			writers = []io.Writer{
-				file,
-			}
-		}
-	}
-
-	logger = &Logger{
-		out:      io.MultiWriter(writers...),
-		out_type: ott,
-	}
-}
-
 const (
 	/*color format
 	"\x1b[0;%dm%s\x1b[0m"
 	*/
-	color_text_black = iota + 30
-	color_text_red
-	color_text_green
-	color_text_yellow
-	color_text_blue
-	color_text_magenta
-	color_text_cyan
-	color_text_white
+	_color_text_black = iota + 30
+	_color_text_red
+	_color_text_green
+	_color_text_yellow
+	_color_text_blue
+	_color_text_magenta
+	_color_text_cyan
+	_color_text_white
 )
 
 const (
-	/*out type*/
-	ott_terminal = 0
-	ott_file     = 1
+	_level_debug = 0
+	_level_info  = 1
+	_level_warn  = 2
+	_level_error = 3
 )
 
-type Logger struct {
-	mu       sync.Mutex
-	out      io.Writer
-	out_type uint
-}
+var logger *Logger = nil
 
-func New(out io.Writer) *Logger {
-	var l = &Logger{
-		out:      out,
-		out_type: ott_file,
+func init() {
+	logger = &Logger{
+		files: []*os.File{
+			os.Stdout,
+		},
+		level:     _level_debug,
+		calldepth: 5,
 	}
-	return l
 }
 
-func (l *Logger) Output(pretty string, prefix string, calldepth int, s string) error {
+type Logger struct {
+	mux       sync.Mutex
+	files     []*os.File
+	level     int
+	calldepth int
+}
+
+func NewLogger(f []*os.File, level int, calldepth int) *Logger {
+	return &Logger{
+		files:     f,
+		level:     level,
+		calldepth: calldepth,
+	}
+}
+
+func (l *Logger) Writer(color int, s string) (int, error) {
+	for i, f := range l.files {
+		var fd = f.Fd()
+		var name = f.Name()
+
+		var pretty_fmt = "%s"
+		if _color_text_black <= color && color <= _color_text_white &&
+			((fd == 1 && name == "/dev/stdout") || (fd == 2 && name == "/dev/stderr")) {
+			pretty_fmt = fmt.Sprintf("\x1b[0;%dm%s\x1b[0m", color, "%s")
+		}
+
+		var ss = fmt.Sprintf(pretty_fmt, s)
+		var _, err = f.Write([]byte(ss))
+		if err != nil {
+			return i + 1, err
+		}
+	}
+
+	return len(l.files), nil
+}
+
+func (l *Logger) Output(color int, prefix string, s string) error {
 	var now = time.Now()
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	var str = fmt.Sprintf(pretty, Format(prefix, calldepth, now, s))
-	var _, err = l.out.Write([]byte(str))
+	l.mux.Lock()
+	defer l.mux.Unlock()
+	var str = Format(prefix, now, "", l.calldepth, s)
+	var _, err = l.Writer(color, str)
 	return err
 }
 
-var Format = func(prefix string, calldepth int, t time.Time, s string) string {
+var Format = func(prefix string, time time.Time, timefmt string, calldepth int, s string) string {
+	var p = GenPrefixInfo(prefix)
+	var t = GenTimeInfo(time, timefmt)
+	var fl = GenFileAndLineNumInfo(calldepth)
+
+	var str = fmt.Sprintf("%s %s %s> %s", p, t, fl, s)
+	return str
+}
+
+var GenPrefixInfo = func(s string) (ss string) {
+	ss = s
+	return
+}
+
+var GenTimeInfo = func(t time.Time, fmt string) string {
+	var default_fmt = "2006-01-02 15:04:05.000"
+	if fmt != "" {
+		default_fmt = fmt
+	}
+	var fstr = t.Format(default_fmt)
+	return fstr
+}
+
+var GenFileAndLineNumInfo = func(calldepth int) string {
 	var _, file_name, line_number, ok = runtime.Caller(calldepth)
 	if !ok {
 		file_name = "???"
 		line_number = 0
 	}
-	var buf bytes.Buffer
 
-	buf.WriteString(prefix)
-	var fstr = t.Format("2006-01-02 15:04:05.000000000")
-	buf.WriteString(fstr)
-	buf.Write([]byte(" "))
-	buf.WriteString(file_name)
-	buf.Write([]byte(":"))
-	buf.WriteString(fmt.Sprintf("%d", line_number))
-	buf.Write([]byte(" > "))
-	buf.WriteString(s)
-
-	return buf.String()
+	return fmt.Sprintf("%s:%d", file_name, line_number)
 }
 
-func color_format(color int) string {
-	if runtime.GOOS == "windows" {
-		return "%s"
-	}
-
-	var format = "\x1b[0;%dm%s\x1b[0m"
-	switch color {
-	case color_text_black,
-		color_text_red,
-		color_text_green,
-		color_text_yellow,
-		color_text_blue,
-		color_text_magenta,
-		color_text_cyan,
-		color_text_white:
-		return fmt.Sprintf(format, color, "%s")
-	default:
-		return "%s"
+func (l *Logger) Debug(v ...interface{}) {
+	if l.level <= _level_debug {
+		var s = fmt.Sprintln(v...)
+		l.Output(_color_text_green, "[DEBUG]", s)
 	}
 }
 
-func Debug(v interface{}) {
-	if logger != nil {
-		var pretty = "%s"
-		if logger.out_type == ott_terminal {
-			pretty = color_format(color_text_yellow)
-		}
-
-		var _ = logger.Output(pretty, "[DEBUG]▸ ", 3, fmt.Sprintln(v))
+func (l *Logger) Info(v ...interface{}) {
+	if l.level <= _level_info {
+		var s = fmt.Sprintln(v...)
+		l.Output(_color_text_white, "[INFO]", s)
 	}
 }
 
-func Info(v interface{}) {
-	if logger != nil {
-		var pretty = "%s"
-		if logger.out_type == ott_terminal {
-			pretty = color_format(color_text_white)
-		}
-
-		var _ = logger.Output(pretty, "[INFO]▸ ", 3, fmt.Sprintln(v))
+func (l *Logger) Warn(v ...interface{}) {
+	if l.level <= _level_warn {
+		var s = fmt.Sprintln(v...)
+		l.Output(_color_text_yellow, "[WARN]", s)
 	}
 }
 
-func Error(v interface{}) {
-	if logger != nil {
-		var pretty = "%s"
-		if logger.out_type == ott_terminal {
-			pretty = color_format(color_text_red)
-		}
+func (l *Logger) Error(v ...interface{}) {
+	var s = fmt.Sprintln(v...)
+	l.Output(_color_text_red, "[ERROR]", s)
+	panic(s)
+}
 
-		var _ = logger.Output(pretty, "[ERROR]▸ ", 3, fmt.Sprintln(v))
-	}
+func Debug(v ...interface{}) {
+	logger.Debug(v...)
+}
+
+func Info(v ...interface{}) {
+	logger.Info(v...)
+}
+
+func Warn(v ...interface{}) {
+	logger.Warn(v...)
+}
+
+func Error(v ...interface{}) {
+	logger.Error(v...)
 }

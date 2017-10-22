@@ -2,7 +2,6 @@ package routes
 
 import (
 	"github.com/gorilla/mux"
-	"libs/log"
 	"libs3/response"
 	"net/http"
 )
@@ -18,9 +17,7 @@ func routes(router *mux.Router) {
 }
 
 var home = func(w http.ResponseWriter, r *http.Request) {
-	log.Debug("test")
-	var m = make(map[string]string)
-	m["html"] = `"aa"<a>hello</a>`
-	response.JResult(w, m)
+	panic("error 手动")
+	response.JOK(w)
 	return
 }

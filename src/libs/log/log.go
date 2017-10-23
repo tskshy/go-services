@@ -1,9 +1,14 @@
 package log
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
+	"libs/toolkits"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -29,16 +34,94 @@ const (
 	_level_error = 3
 )
 
+type LoggerConf struct {
+	Level    string `json:"level"`
+	FilePath string `json:"file-path"`
+}
+
 var logger *Logger = nil
 
+func level_num(s string) int {
+	var ss = strings.ToLower(s)
+	switch ss {
+	case "debug":
+		return _level_debug
+	case "info":
+		return _level_info
+	case "warn":
+		return _level_warn
+	case "error":
+		return _level_error
+	default:
+		panic("unknown level type")
+	}
+}
+
 func init() {
+	var path = ""
+	flag.StringVar(&path, "log", "", "log conf file path")
+	flag.Parse()
+	if path == "" {
+		/*没有传递日志配置文件，走默认设置*/
+		logger = &Logger{
+			files: []*os.File{
+				os.Stdout,
+			},
+			level:     _level_debug,
+			calldepth: 5,
+		}
+		return
+	}
+
+	var f, err_f = os.Open(path)
+	if err_f != nil {
+		panic(err_f)
+	}
+
+	var b, err_b = ioutil.ReadAll(f)
+	if err_b != nil {
+		panic(err_b)
+	}
+
+	var conf = make(map[string]interface{})
+	var err_conf = json.Unmarshal(b, &conf)
+	if err_conf != nil {
+		panic(err_conf)
+	}
+
+	var root, ok = conf["log-conf"]
+	if !ok {
+		panic("key[log-conf] not found in log conf file")
+	}
+
+	var value, ok_v = root.(map[string]interface{})
+	if !ok_v {
+		panic("log-conf type is not map[string]string")
+	}
+
+	var cfg = toolkits.JsonInfToStr(&value)
+	var conf_s = LoggerConf{}
+
+	var err_ucc = json.Unmarshal([]byte(cfg), &conf_s)
+	if err_ucc != nil {
+		panic(err_ucc)
+	}
+
+	var level = level_num(conf_s.Level)
+	var fp, err_ffpp = os.Open(conf_s.FilePath)
+	if err_ffpp != nil {
+		panic(err_ffpp)
+	}
+
 	logger = &Logger{
 		files: []*os.File{
-			os.Stdout,
+			fp,
 		},
-		level:     _level_debug,
+		level:     level,
 		calldepth: 5,
 	}
+
+	return
 }
 
 type Logger struct {

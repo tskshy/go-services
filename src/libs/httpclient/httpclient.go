@@ -107,7 +107,8 @@ func request(hr *HttpRequest) (*HTTP.Response, error) {
 			}
 
 			info.Headers["Content-Type"] = writer.FormDataContentType()
-			body = STRINGS.NewReader(multipart_body.String())
+			//body = STRINGS.NewReader(multipart_body.String())
+			body = multipart_body
 		} else {
 			body = STRINGS.NewReader(info.Body)
 		}
@@ -125,7 +126,7 @@ func request(hr *HttpRequest) (*HTTP.Response, error) {
 	}
 
 	var client = &HTTP.Client{
-		Timeout: TIME.Duration(TIME.Duration(info.Timeout) * TIME.Second),
+		Timeout: TIME.Duration(info.Timeout) * TIME.Second,
 	}
 	response, err := client.Do(request)
 	if err != nil {
@@ -154,7 +155,7 @@ func (hr *HttpRequest) Do() (string, error) {
 	}
 
 	if response.StatusCode != 200 {
-		return string(resbody), ERRORS.New(`http status code: ` + FMT.Sprintf("%d", response.StatusCode))
+		return string(resbody), ERRORS.New(FMT.Sprintf("http status code: %d", response.StatusCode))
 	}
 
 	return string(resbody), nil

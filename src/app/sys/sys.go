@@ -2,6 +2,7 @@ package sys
 
 import (
 	"app/routes"
+	"libs/log"
 	"net/http"
 	"time"
 )
@@ -14,5 +15,6 @@ func Boot() {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	log.Info("server start")
 	var _ = srv.ListenAndServe()
 }

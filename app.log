@@ -1,5 +1,0 @@
-[0;33m[DEBUG]▸ 2017-10-19 21:41:59.327366669 /root/devel/golang/go-services/src/routes/routes.go:21 > test
-[0m[0;33m[DEBUG]▸ 2017-10-19 21:42:13.255093134 /root/devel/golang/go-services/src/routes/routes.go:21 > test
-[0m[DEBUG]▸ 2017-10-19 21:45:51.177518819 /root/devel/golang/go-services/src/routes/routes.go:21 > test
-[DEBUG]▸ 2017-10-19 21:45:56.575304796 /root/devel/golang/go-services/src/routes/routes.go:21 > test
-[DEBUG]▸ 2017-10-19 21:45:59.545222890 /root/devel/golang/go-services/src/routes/routes.go:21 > test

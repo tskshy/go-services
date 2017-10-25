@@ -1,7 +1,9 @@
 package sys
 
 import (
+	"app/conf"
 	"app/routes"
+	"fmt"
 	"libs/log"
 	"net/http"
 	"time"
@@ -10,11 +12,11 @@ import (
 func Boot() {
 	var srv = &http.Server{
 		Handler:      routes.Init(),
-		Addr:         ":4243",
+		Addr:         fmt.Sprintf("%s:%d", conf.AppConfInfo.HttpHost, conf.AppConfInfo.HttpPort),
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
 
-	log.Info("server start")
+	log.Info("Run Server:", conf.AppConfInfo.HttpHost, conf.AppConfInfo.HttpPort)
 	var _ = srv.ListenAndServe()
 }

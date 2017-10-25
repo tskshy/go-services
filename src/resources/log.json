@@ -1,6 +1,6 @@
 {
-	"log-conf": {
+	"root-log": {
 		"level": "debug",
-		"file-path": "/root/devel/golang/go-services/app.log"
+		"output": ""
 	}
 }

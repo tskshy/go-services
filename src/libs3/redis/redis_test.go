@@ -19,3 +19,7 @@ func Test_Redis(t *testing.T) {
 	}
 	return
 }
+
+func Test_WithConn(t *testing.T) {
+
+}

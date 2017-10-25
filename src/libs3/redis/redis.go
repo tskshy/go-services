@@ -155,3 +155,12 @@ func TryLock(conn redis.Conn, key string, expire int, timeout int) bool {
 		}
 	}
 }
+
+var WithDo = func(cmd string, args ...interface{}) (interface{}, error) {
+	var conn = Pool.Get()
+	if conn.Err() != nil {
+		return nil, conn.Err()
+	}
+	defer func() { var _ = conn.Close() }()
+	return conn.Do(cmd, args)
+}

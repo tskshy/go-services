@@ -2,10 +2,9 @@ package log
 
 import (
 	"encoding/json"
-	"flag"
 	"fmt"
 	"io/ioutil"
-	"libs/toolkits"
+	"libs/flag"
 	"os"
 	"runtime"
 	"strings"
@@ -34,9 +33,13 @@ const (
 	_level_error = 3
 )
 
-type LoggerConf struct {
-	Level    string `json:"level"`
-	FilePath string `json:"file-path"`
+type LoggerConfLvl0 struct {
+	Root *LoggerConfLvl1 `json:"root-log"`
+}
+
+type LoggerConfLvl1 struct {
+	Level  string `json:"level"`
+	Output string `json:"output"`
 }
 
 var logger *Logger = nil
@@ -53,14 +56,16 @@ func level_num(s string) int {
 	case "error":
 		return _level_error
 	default:
-		panic("unknown level type")
+		return _level_info
 	}
 }
 
 func init() {
-	var path = ""
-	flag.StringVar(&path, "log", "", "log conf file path")
-	flag.Parse()
+	//flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	//var path = ""
+	//flag.StringVar(&path, "log", "", "log conf file path")
+	//flag.Parse()
+	var path = flag.Parse("log", "") //log conf file path
 	if path == "" {
 		/*没有传递日志配置文件，走默认设置*/
 		logger = &Logger{
@@ -73,54 +78,52 @@ func init() {
 		return
 	}
 
-	var f, err_f = os.Open(path)
-	if err_f != nil {
-		panic(err_f)
+	var cfg_file, err_cfg = os.Open(path)
+	if err_cfg != nil {
+		panic(err_cfg)
 	}
 
-	var b, err_b = ioutil.ReadAll(f)
+	var b, err_b = ioutil.ReadAll(cfg_file)
 	if err_b != nil {
 		panic(err_b)
 	}
 
-	var conf = make(map[string]interface{})
+	var conf LoggerConfLvl0
 	var err_conf = json.Unmarshal(b, &conf)
 	if err_conf != nil {
 		panic(err_conf)
 	}
 
-	var root, ok = conf["log-conf"]
-	if !ok {
-		panic("key[log-conf] not found in log conf file")
+	if conf.Root == nil {
+		panic("root-log -> nil")
 	}
 
-	var value, ok_v = root.(map[string]interface{})
-	if !ok_v {
-		panic("log-conf type is not map[string]string")
+	var level = level_num(conf.Root.Level)
+	var output = conf.Root.Output
+
+	if output == "" {
+		logger = &Logger{
+			files: []*os.File{
+				os.Stdout,
+			},
+			level:     level,
+			calldepth: 5,
+		}
+		return
+	} else {
+		var f, err = os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+		if err != nil {
+			panic(err)
+		}
+		logger = &Logger{
+			files: []*os.File{
+				f,
+			},
+			level:     level,
+			calldepth: 5,
+		}
+		return
 	}
-
-	var cfg = toolkits.JsonInfToStr(&value)
-	var conf_s = LoggerConf{}
-
-	var err_ucc = json.Unmarshal([]byte(cfg), &conf_s)
-	if err_ucc != nil {
-		panic(err_ucc)
-	}
-
-	var level = level_num(conf_s.Level)
-	var fp, err_ffpp = os.Open(conf_s.FilePath)
-	if err_ffpp != nil {
-		panic(err_ffpp)
-	}
-
-	logger = &Logger{
-		files: []*os.File{
-			fp,
-		},
-		level:     level,
-		calldepth: 5,
-	}
-
 	return
 }
 
@@ -174,7 +177,7 @@ var Format = func(prefix string, time time.Time, timefmt string, calldepth int, 
 	var t = GenTimeInfo(time, timefmt)
 	var fl = GenFileAndLineNumInfo(calldepth)
 
-	var str = fmt.Sprintf("%s %s %s> %s", p, t, fl, s)
+	var str = fmt.Sprintf("%s %s %s ▸ %s", p, t, fl, s)
 	return str
 }
 
@@ -199,33 +202,40 @@ var GenFileAndLineNumInfo = func(calldepth int) string {
 		line_number = 0
 	}
 
+	for i := len(file_name) - 1; i > 0; i-- {
+		if file_name[i] == '/' {
+			file_name = file_name[i+1:]
+			break
+		}
+	}
+
 	return fmt.Sprintf("%s:%d", file_name, line_number)
 }
 
 func (l *Logger) Debug(v ...interface{}) {
 	if l.level <= _level_debug {
 		var s = fmt.Sprintln(v...)
-		l.Output(_color_text_green, "[DEBUG]", s)
+		var _ = l.Output(_color_text_green, "[DEBUG]", s)
 	}
 }
 
 func (l *Logger) Info(v ...interface{}) {
 	if l.level <= _level_info {
 		var s = fmt.Sprintln(v...)
-		l.Output(_color_text_white, "[INFO]", s)
+		var _ = l.Output(_color_text_white, "[INFO]", s)
 	}
 }
 
 func (l *Logger) Warn(v ...interface{}) {
 	if l.level <= _level_warn {
 		var s = fmt.Sprintln(v...)
-		l.Output(_color_text_yellow, "[WARN]", s)
+		var _ = l.Output(_color_text_yellow, "[WARN]", s)
 	}
 }
 
 func (l *Logger) Error(v ...interface{}) {
 	var s = fmt.Sprintln(v...)
-	l.Output(_color_text_red, "[ERROR]", s)
+	var _ = l.Output(_color_text_red, "[ERROR]", s)
 	panic(s)
 }
 

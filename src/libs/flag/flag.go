@@ -3,6 +3,7 @@ package flag
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 /*
@@ -10,22 +11,25 @@ import (
  cmdline: ./cmd args0 args1 ...
 */
 func Parse(key, value string) string {
-	var args = os.Args[1:]
-
-	/*parse error*/
-	if len(args)%2 != 0 {
+	if key == "" {
 		return value
 	}
 
-	for i := 0; i < len(args); i += 2 {
-		var key_a = args[i]
+	var args = os.Args[1:]
 
-		var key_1 = fmt.Sprintf("-%s", key)
-		var key_2 = fmt.Sprintf("--%s", key)
-
-		if key == key_a || key_1 == key_a || key_2 == key_a {
-			return args[i+1]
+	for i := 0; i < len(args); i += 1 {
+		var kv = strings.Split(args[i], "=")
+		if len(kv) != 2 && kv[0] != "" && kv[1] != "" {
+			continue
 		}
+
+		var key_a = fmt.Sprintf("-%s", key)
+		var key_b = fmt.Sprintf("--%s", key)
+
+		if kv[0] == key || kv[0] == key_a || kv[0] == key_b {
+			return kv[1]
+		}
+
 	}
 
 	return value

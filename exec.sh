@@ -23,7 +23,7 @@ function clean() {
 
 function start() {
 #nohup ./$APPNAME 1>/dev/null 2>&1 &
-	./$APPNAME --log "/root/devel/golang/go-services/src/resources/log.json" --conf "/root/devel/golang/go-services/src/resources/app.json"
+	./$APPNAME --log="/root/devel/golang/go-services/src/resources/log.json" --conf="/root/devel/golang/go-services/src/resources/app.json"
 }
 
 function stop() {

@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"libs/flag"
 	"os"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
+
+	"libs/flag"
 )
 
 const (
@@ -61,10 +62,6 @@ func level_num(s string) int {
 }
 
 func init() {
-	//flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	//var path = ""
-	//flag.StringVar(&path, "log", "", "log conf file path")
-	//flag.Parse()
 	var path = flag.Parse("log", "") //log conf file path
 	if path == "" {
 		/*没有传递日志配置文件，走默认设置*/

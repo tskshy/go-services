@@ -27,9 +27,11 @@ func Test_BruteForce(t *testing.T) {
 */
 func Test_MP(t *testing.T) {
 	var ts = "ctcaatcacaatcat"
-	var ps = "caatcat"
+	//var ps = "caatcat"
+	//var ps = "abaabbabaab"
+	var ps = "abcdabd"
 	t.Log(ts, ps)
-	var r = MP(ts, ps)
+	var r = MP1(ts, ps)
 	if !r {
 		t.Error("alg error", r)
 		return

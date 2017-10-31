@@ -26,13 +26,20 @@ func Test_BruteForce(t *testing.T) {
  go test libs/algorithm/strings -v -test.run Test_MP
 */
 func Test_MP(t *testing.T) {
-	var ts = "ctcaatcacaatcat"
+	var ts = "ctcaatcacaatcat caatcat"
 	//var ps = "caatcat"
-	//var ps = "abaabbabaab"
-	var ps = "abcdabd"
+	var ps = "adcadcad"
 	t.Log(ts, ps)
-	var r = MP1(ts, ps)
-	if !r {
+	var r = MP(ts, ps, false)
+	t.Log(r)
+	if r != 0 {
+		t.Error("alg error", r)
+		return
+	}
+
+	r = MP(ts, ps, true)
+	t.Log(r)
+	if r != 0 {
 		t.Error("alg error", r)
 		return
 	}

@@ -3,8 +3,8 @@ package strings
 import "fmt"
 
 /*字符串与模式匹配 常见算法*/
-
 /*检查target中是否包含pattern*/
+
 var BruteForce = func(target, pattern string) bool {
 	var atr = []rune(target)
 	var apr = []rune(pattern)

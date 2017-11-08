@@ -1,0 +1,6 @@
+{
+	"http.host": "127.0.0.1",
+	"http.port": 4243,
+
+	"www.dir": "/root/devel/golang/go-services/src/resources/www/"
+}

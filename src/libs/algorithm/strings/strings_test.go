@@ -1,6 +1,8 @@
 package strings
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 )
 
@@ -43,4 +45,12 @@ func Test_MP(t *testing.T) {
 		t.Error("alg error", r)
 		return
 	}
+}
+
+func Test_1(t *testing.T) {
+	var m = make(map[string]string)
+	m["hello"] = "1"
+	var b, _ = json.Marshal(m)
+
+	fmt.Println(string(b))
 }

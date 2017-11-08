@@ -1,7 +1,5 @@
 package strings
 
-import "fmt"
-
 /*字符串与模式匹配 常见算法*/
 /*检查target中是否包含pattern*/
 
@@ -69,7 +67,7 @@ var MP = func(target, pattern string, use_kmp bool) (found int) {
 		return 0
 	}
 	var next = fun(apr)
-	fmt.Println(next)
+	//fmt.Println(next)
 
 	var i int = 0
 	var j int = 0
@@ -84,8 +82,8 @@ var MP = func(target, pattern string, use_kmp bool) (found int) {
 
 		if j >= len(apr) {
 			/**TODO del*/
-			var info = fmt.Sprintf("[%d %d)", i-j, i)
-			fmt.Println("found", info)
+			//var info = fmt.Sprintf("[%d %d)", i-j, i)
+			//fmt.Println("found", info)
 			/***/
 
 			j = next[j]

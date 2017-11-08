@@ -10,6 +10,8 @@ import (
 type AppConfStruct struct {
 	HttpHost string `json:"http.host"`
 	HttpPort int    `json:"http.port"`
+
+	WWWDir string `json:"www.dir"`
 }
 
 var AppConfInfo *AppConfStruct = nil
@@ -25,6 +27,8 @@ func init() {
 	if err_f != nil {
 		panic(err_f)
 	}
+
+	defer func() { var _ = f.Close() }()
 
 	var b, err_b = ioutil.ReadAll(f)
 	if err_b != nil {

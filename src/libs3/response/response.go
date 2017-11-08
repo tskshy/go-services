@@ -7,23 +7,24 @@ import (
 	"net/http"
 )
 
-type JnRes struct {
+type JsonBody struct {
 	StatusCode string      `json:"status-code"`
 	Message    string      `json:"message"`
-	Error      string      `json:"error"`
+	Error      string      `json:"error,omitempty"`
 	Body       interface{} `json:"body,omitempty"`
 }
 
-var default_code = 0
-var default_message = ""
-var default_error = ""
+var default_code = 0     /*自定义code*/
+var default_message = "" /*http message*/
+
+var default_error = "" /*错误信息*/
 
 /*
  write json string to client
 
  status_code : http status code
  code : custom code
- message : http status message
+ message : client message or http status message if message == ""
  error : custom error message
  body : custom <struct body> message
 */
@@ -33,7 +34,7 @@ var JComplete = func(w http.ResponseWriter, status_code int, code int, message s
 		msg = http.StatusText(status_code)
 	}
 
-	var res = &JnRes{
+	var res = &JsonBody{
 		StatusCode: fmt.Sprintf("%d.%d", status_code, code),
 		Message:    msg,
 		Error:      err,
@@ -71,6 +72,18 @@ var CatchError = func(w http.ResponseWriter, r *http.Request) {
 		JReject(w, http.StatusInternalServerError, 0, http.StatusText(http.StatusInternalServerError), fmt.Sprint(v))
 	}
 }
+
+type RouteReject struct {
+	StatusCode int    /*http code*/
+	StatusText string /*http message*/
+}
+
+func (rr *RouteReject) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	JReject(w, rr.StatusCode, default_code, rr.StatusText, default_error)
+}
+
+var NotFound = RouteReject{StatusCode: http.StatusNotFound, StatusText: http.StatusText(http.StatusNotFound)}
+var MethodNotAllowed = RouteReject{StatusCode: http.StatusMethodNotAllowed, StatusText: http.StatusText(http.StatusMethodNotAllowed)}
 
 var JOK = func(w http.ResponseWriter) {
 	JComplete(w, http.StatusOK, default_code, default_message, default_error, nil)

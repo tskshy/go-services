@@ -1,0 +1,42 @@
+#nav-top {
+	position: fixed;
+	left: 0px;
+	top: 0px;
+	height: 56px;
+	background-color: #3f3f3f;
+	width: 100%;
+	color: white;
+	border-color: #2f2f2f;
+	box-shadow: 0px 3px 3px #888888;
+	z-index: 999;
+}
+
+#nav-top a.a1 {
+	float: left;
+	height: 56px;
+	padding: 14px 25px 15px 20px;
+}
+
+#nav-left {
+	position: fixed;
+	top: 56px;
+	left: 0px;
+	width: 312px;
+	height: 100%;
+	background-color: #2f2f2f;
+	z-index: 1;
+	box-shadow: 0px 3px 3px #888888;
+	border: 1px solid;
+	border-radius: 2px;
+}
+
+/*small device*/
+@media screen and (min-width: 0px) and (max-width: 512px) {
+	#nav-top {
+	}
+
+	#nav-left {
+		display: none;
+		width: 100%;
+	}
+}

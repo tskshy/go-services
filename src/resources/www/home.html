@@ -13,21 +13,53 @@
 	<!-- Include all compiled plugins (below), or include individual files as needed -->
 	<!-- <script src="/static/js/bootstrap.min.js"></script> -->
 	<!-- weui -->
-	<!--<link href="/static/css/weui.min.css" rel="stylesheet">-->
+	<link href="/static/css/weui.min.css" rel="stylesheet">
 
+	<script src="/static/js/app.js"></script>
 	<link href="/static/css/app.css" rel="stylesheet">
 </head>
 <body>
 <!-- bootstrap(v3)在线编辑器 -->
 <!-- http://www.layoutit.cn/v3/index.html -->
 <div id="nav-top">
-	<a class="a1">F F</a>
+	<div class="nav-left"></div>
+	<a class="a1" href="/">首 页</a>
+	<div class="nav-register">注册</div>
+	<div class="nav-login">登录</div>
+	<i class="weui-icon-search search-top"></i>
 </div>
 
 <div id="nav-left">
 
 </div>
 
-
+<div id="search">
+	<div class="weui-search-bar" id="search_bar">
+		<form class="weui-search-bar__form">
+			<div class="weui-search-bar__box" id="search-box">
+				<i class="weui-icon-search"></i>
+				<input type="search" class="weui-search-bar__input" id="search-input" placeholder="搜索" />
+				<a href="javascript:" class="weui-icon-clear" id="search-clear"></a>
+			</div>
+			<label for="search_input" class="weui-search-bar__label" id="search-text">
+				<i class="weui-icon-search"></i>
+				<span>搜索</span>
+			</label>
+		</form>
+		<a href="javascript:" class="weui-search-bar__cancel-btn" id="search-cancel">取消</a>
+	</div>
+	<div class="weui-cells weui-cells_access search_show" id="search_show">
+		<div class="weui-cell">
+			<div class="weui-cell__bd weui-cell_primary">
+				<p>实时搜索文本</p>
+			</div>
+		</div>
+		<div class="weui-cell">
+			<div class="weui-cell__bd weui-cell_primary">
+				<p>实时搜索文本</p>
+			</div>
+		</div>
+	</div>
+</div>
 </body>
 </html>

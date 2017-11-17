@@ -34,18 +34,15 @@ const (
 	_level_error = 3
 )
 
-type LoggerConfLvl0 struct {
-	Root *LoggerConfLvl1 `json:"root-log"`
-}
-
-type LoggerConfLvl1 struct {
+type LoggerConf struct {
 	Level  string `json:"level"`
 	Output string `json:"output"`
+	Format string `json:"format"`
 }
 
 var logger *Logger = nil
 
-func level_num(s string) int {
+func get_level(s string) int {
 	var ss = strings.ToLower(s)
 	switch ss {
 	case "debug":
@@ -61,66 +58,80 @@ func level_num(s string) int {
 	}
 }
 
+func get_format(in string) string {
+	if in == "" {
+		return "2006-01-02 15:04:05.000"
+	}
+
+	return in
+}
+
+func get_outputs(paths string) []*os.File {
+	var arr = strings.Split(paths, ",")
+
+	var outputs []*os.File
+	for _, path := range arr {
+		if path != "" {
+			var f, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+			if err != nil {
+				/*过滤错误情况*/
+				fmt.Println("warning", err)
+				continue
+			}
+			outputs = append(outputs, f)
+		}
+	}
+
+	if len(outputs) == 0 {
+		outputs = append(outputs, os.Stdout)
+	}
+
+	return outputs
+}
+
 func init() {
 	var path = flag.Parse("log", "") //log conf file path
+
+	var def_logger = &Logger{
+		files: []*os.File{
+			os.Stdout,
+		},
+		level:     get_level("debug"),
+		calldepth: 5,
+		format:    get_format(""),
+	}
+
 	if path == "" {
 		/*没有传递日志配置文件，走默认设置*/
-		logger = &Logger{
-			files: []*os.File{
-				os.Stdout,
-			},
-			level:     _level_debug,
-			calldepth: 5,
-		}
+		logger = def_logger
 		return
 	}
 
 	var cfg_file, err_cfg = os.Open(path)
 	if err_cfg != nil {
+		logger = def_logger
 		panic(err_cfg)
 	}
 
 	var b, err_b = ioutil.ReadAll(cfg_file)
 	if err_b != nil {
+		logger = def_logger
 		panic(err_b)
 	}
 
-	var conf LoggerConfLvl0
+	var conf LoggerConf
 	var err_conf = json.Unmarshal(b, &conf)
 	if err_conf != nil {
+		logger = def_logger
 		panic(err_conf)
 	}
 
-	if conf.Root == nil {
-		panic("root-log -> nil")
-	}
+	/*如果配置文件内容不符合要求，给予默认设置*/
+	def_logger.level = get_level(conf.Level)
+	def_logger.format = get_format(conf.Format)
+	def_logger.files = get_outputs(conf.Output)
 
-	var level = level_num(conf.Root.Level)
-	var output = conf.Root.Output
-
-	if output == "" {
-		logger = &Logger{
-			files: []*os.File{
-				os.Stdout,
-			},
-			level:     level,
-			calldepth: 5,
-		}
-		return
-	} else {
-		var f, err = os.OpenFile(output, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-		if err != nil {
-			panic(err)
-		}
-		logger = &Logger{
-			files: []*os.File{
-				f,
-			},
-			level:     level,
-			calldepth: 5,
-		}
-		return
-	}
+	logger = def_logger
 	return
 }
 
@@ -129,6 +140,7 @@ type Logger struct {
 	files     []*os.File
 	level     int
 	calldepth int
+	format    string
 }
 
 func NewLogger(f []*os.File, level int, calldepth int) *Logger {
@@ -136,6 +148,7 @@ func NewLogger(f []*os.File, level int, calldepth int) *Logger {
 		files:     f,
 		level:     level,
 		calldepth: calldepth,
+		format:    "",
 	}
 }
 
@@ -164,7 +177,7 @@ func (l *Logger) Output(color int, prefix string, s string) error {
 	var now = time.Now()
 	l.mux.Lock()
 	defer l.mux.Unlock()
-	var str = Format(prefix, now, "", l.calldepth, s)
+	var str = Format(prefix, now, l.format, l.calldepth, s)
 	var _, err = l.Writer(color, str)
 	return err
 }
@@ -184,11 +197,7 @@ var GenPrefixInfo = func(s string) (ss string) {
 }
 
 var GenTimeInfo = func(t time.Time, fmt string) string {
-	var default_fmt = "2006-01-02 15:04:05.000"
-	if fmt != "" {
-		default_fmt = fmt
-	}
-	var fstr = t.Format(default_fmt)
+	var fstr = t.Format(fmt)
 	return fstr
 }
 

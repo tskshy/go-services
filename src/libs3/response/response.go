@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"libs/log"
 	"net/http"
 )
 
@@ -59,6 +60,7 @@ var JComplete = func(w http.ResponseWriter, status_code int, code int, message s
 func DecoratorFunc(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	var ff = func(w http.ResponseWriter, r *http.Request) {
 		defer CatchError(w, r)
+		log.Info(r.Method, "  ", r.URL.Path, "  ", r.Header, "  ", r.Body)
 		f(w, r)
 		return
 	}

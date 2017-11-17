@@ -17,6 +17,8 @@ func Boot() {
 		ReadTimeout:  15 * time.Second,
 	}
 
+	log.Debug("Run Server:", conf.AppConfInfo.HttpHost, conf.AppConfInfo.HttpPort)
 	log.Info("Run Server:", conf.AppConfInfo.HttpHost, conf.AppConfInfo.HttpPort)
+	log.Warn("Run Server:", conf.AppConfInfo.HttpHost, conf.AppConfInfo.HttpPort)
 	var _ = srv.ListenAndServe()
 }

@@ -1,3 +1,4 @@
+/**/
 #nav-top {
 	position: fixed;
 	left: 0px;
@@ -47,7 +48,7 @@
 	padding-left: 5px;
 	font-size: 12px;
 	cursor: pointer;
-	color: green;
+	color: #09BB07;
 }
 
 #nav-top div.nav-register {
@@ -58,7 +59,7 @@
 	padding-left: 5px;
 	font-size: 12px;
 	cursor: pointer;
-	color: green;
+	color: #09BB07;
 }
 
 #nav-top i.search-top {
@@ -111,3 +112,16 @@
 		width: 100%;
 	}
 }
+
+.div-bottom {
+	border-bottom: 1px solid #e4dede;
+	border-radius: 7px;
+}
+
+.head-img {
+	width: 25px;
+	margin-right: 5px;
+	display: block;
+	border-radius:21%;
+}
+

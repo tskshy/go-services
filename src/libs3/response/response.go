@@ -4,32 +4,27 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"libs/log"
 	"net/http"
 )
 
 type JsonBody struct {
-	StatusCode string      `json:"status-code"`
+	StatusCode string      `json:"code"`
 	Message    string      `json:"message"`
-	Error      string      `json:"error,omitempty"`
 	Body       interface{} `json:"body,omitempty"`
 }
 
-var default_code = 0     /*自定义code*/
-var default_message = "" /*http message*/
-
-var default_error = "" /*错误信息*/
+var code = 0     /*default code*/
+var message = "" /*default message*/
 
 /*
  write json string to client
 
  status_code : http status code
  code : custom code
- message : client message or http status message if message == ""
- error : custom error message
+ message : client message or http status message or err msg
  body : custom <struct body> message
 */
-var JComplete = func(w http.ResponseWriter, status_code int, code int, message string, err string, body interface{}) {
+var JComplete = func(w http.ResponseWriter, status_code int, code int, message string, body interface{}) {
 	var msg = message
 	if msg == "" {
 		msg = http.StatusText(status_code)
@@ -38,7 +33,6 @@ var JComplete = func(w http.ResponseWriter, status_code int, code int, message s
 	var res = &JsonBody{
 		StatusCode: fmt.Sprintf("%d.%d", status_code, code),
 		Message:    msg,
-		Error:      err,
 		Body:       body,
 	}
 
@@ -58,43 +52,42 @@ var JComplete = func(w http.ResponseWriter, status_code int, code int, message s
 }
 
 func DecoratorFunc(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	var ff = func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		defer CatchError(w, r)
-		log.Info(r.Method, "  ", r.URL.Path, "  ", r.Header, "  ", r.Body)
+		//log.Info(r.Method, "  ", r.URL.Path, "  ", r.Header, "  ", r.Body)
 		f(w, r)
 		return
 	}
-
-	return ff
 }
 
 var CatchError = func(w http.ResponseWriter, r *http.Request) {
 	var v = recover()
 	if v != nil {
-		JReject(w, http.StatusInternalServerError, 0, http.StatusText(http.StatusInternalServerError), fmt.Sprint(v))
+		JReject(w, http.StatusInternalServerError, 0, fmt.Sprint(v))
 	}
 }
 
-type RouteReject struct {
+/*for rest, JSON*/
+type JRouteReject struct {
 	StatusCode int    /*http code*/
 	StatusText string /*http message*/
 }
 
-func (rr *RouteReject) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	JReject(w, rr.StatusCode, default_code, rr.StatusText, default_error)
+func (rr *JRouteReject) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	JReject(w, rr.StatusCode, code, rr.StatusText)
 }
 
-var NotFound = RouteReject{StatusCode: http.StatusNotFound, StatusText: http.StatusText(http.StatusNotFound)}
-var MethodNotAllowed = RouteReject{StatusCode: http.StatusMethodNotAllowed, StatusText: http.StatusText(http.StatusMethodNotAllowed)}
+var NotFound = JRouteReject{StatusCode: http.StatusNotFound, StatusText: http.StatusText(http.StatusNotFound)}
+var MethodNotAllowed = JRouteReject{StatusCode: http.StatusMethodNotAllowed, StatusText: http.StatusText(http.StatusMethodNotAllowed)}
 
 var JOK = func(w http.ResponseWriter) {
-	JComplete(w, http.StatusOK, default_code, default_message, default_error, nil)
+	JComplete(w, http.StatusOK, code, message, nil)
 }
 
 var JResult = func(w http.ResponseWriter, v interface{}) {
-	JComplete(w, http.StatusOK, default_code, default_message, default_error, v)
+	JComplete(w, http.StatusOK, code, message, v)
 }
 
-var JReject = func(w http.ResponseWriter, status_code int, code int, message string, err string) {
-	JComplete(w, status_code, code, message, err, nil)
+var JReject = func(w http.ResponseWriter, status_code int, code int, message string) {
+	JComplete(w, status_code, code, message, nil)
 }

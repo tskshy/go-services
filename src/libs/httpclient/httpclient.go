@@ -57,8 +57,7 @@ func request(hr *HttpRequest) (*HTTP.Response, error) {
 	var body IO.Reader = nil
 
 	if info.Body != "" {
-		if info.Headers != nil &&
-			len(info.Headers) > 0 &&
+		if info.Headers != nil && len(info.Headers) > 0 &&
 			info.Headers["Content-Type"] == "multipart/form-data" {
 
 			/*解析info.Body，要求必须是json格式|map[string]string*/
@@ -109,6 +108,10 @@ func request(hr *HttpRequest) (*HTTP.Response, error) {
 			info.Headers["Content-Type"] = writer.FormDataContentType()
 			//body = STRINGS.NewReader(multipart_body.String())
 			body = multipart_body
+		} else if info.Headers != nil && len(info.Headers) > 0 &&
+			info.Headers["Content-Type"] == "application/x-www-form-urlencoded" {
+			/*外部进行url encode后拼接成form模式，不做处理*/
+			body = STRINGS.NewReader(info.Body)
 		} else {
 			body = STRINGS.NewReader(info.Body)
 		}

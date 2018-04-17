@@ -15,6 +15,7 @@
 
 pkg/
 bin/
+.vscode/
 *.swp
 
 app_abc_def

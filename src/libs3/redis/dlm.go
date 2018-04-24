@@ -8,9 +8,7 @@ import (
 
 /*Distributed Locks Manager*/
 
-/*
- expire: N秒后锁失效，允许其他客户端竞争
-*/
+// Lock 加锁，expire: N秒后锁失效，允许其他客户端竞争
 func Lock(conn redis.Conn, key string, expire int) bool {
 	var now int64 = time.Now().Unix()
 
@@ -66,9 +64,7 @@ func Lock(conn redis.Conn, key string, expire int) bool {
 	return false
 }
 
-/*
- 释放锁
-*/
+// Unlock 释放锁
 func Unlock(conn redis.Conn, key string) bool {
 	var _, err = conn.Do("DEL", key)
 	if err != nil {
@@ -78,9 +74,7 @@ func Unlock(conn redis.Conn, key string) bool {
 	return true
 }
 
-/*
- 尝试加锁
-*/
+// TryLock 尝试加锁
 func TryLock(conn redis.Conn, key string, expire int, timeout int) bool {
 	var b = Lock(conn, key, expire)
 	if b {

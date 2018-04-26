@@ -1,10 +1,10 @@
 #!/usr/bin/env sh
-# quick commit
+# quick sync
 
 INFO=$1
 
 if [ ! -n "$INFO" ]; then
-	echo "you can commit with your update info, e.g.: ./commit.sh 'UPDATE INFO'"
+	echo "you can commit with your update info, e.g.: ./quicksync.sh 'UPDATE INFO'"
 	INFO="update: `date '+%Y-%m-%d %H:%M:%S'`"
 fi
 

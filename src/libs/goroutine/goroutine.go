@@ -54,8 +54,8 @@ func fn0() {
 	fmt.Println("===========")
 
 	wg.Add(2)
-	var chn1 chan int = make(chan int)
-	var chn2 chan int = make(chan int)
+	var chn1 = make(chan int)
+	var chn2 = make(chan int)
 
 	go func(wg *sync.WaitGroup) {
 		defer wg.Add(-1)

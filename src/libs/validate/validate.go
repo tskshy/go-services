@@ -53,6 +53,48 @@ const (
 // 1. validate(正则表达式)
 // 2. validate-message(验证未通过的默认提示)
 func Validate(v interface{}) error {
+	var value = reflect.ValueOf(v)
+
+	if value.Kind() != reflect.Struct {
+		return fmt.Errorf("function only accepts structs; got %s", value.Kind())
+	}
+
+	for i := 0; i < value.NumField(); i++ {
+		var vField = value.Field(i)
+		var tField = value.Type().Field(i)
+
+		var tag, found = tField.Tag.Lookup("validate")
+		if !found {
+			continue
+		}
+
+		if tag == "-" || tag == "" {
+			continue
+		}
+
+		var valStr = fmt.Sprintf("%v", vField.Interface())
+		var r, err = regexp.Compile(tag)
+		if err != nil {
+			return err
+		}
+
+		if !r.Match([]byte(valStr)) {
+			var tag1, found = tField.Tag.Lookup("validate-message")
+			if found {
+				return fmt.Errorf(tag1)
+			}
+			return fmt.Errorf("regex is: %s, value is: %s", tag, valStr)
+		}
+	}
+
+	return nil
+}
+
+// Validate1 (废弃)验证struct类型的数据
+// 两个可选tag:
+// 1. validate(正则表达式)
+// 2. validate-message(验证未通过的默认提示)
+func Validate1(v interface{}) error {
 	var t = reflect.TypeOf(v)
 
 	if t.Kind() != reflect.Struct {
